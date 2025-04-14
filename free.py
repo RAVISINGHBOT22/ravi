@@ -22,6 +22,7 @@ pending_feedback = {}
 warn_count = {}
 attack_logs = []
 user_attack_count = {}
+used_targets = {} 
 
 # FUNCTION TO CHECK IF USER IS IN CHANNEL
 def is_user_in_channel(user_id):
@@ -58,6 +59,12 @@ def handle_attack(message):
 
     if pending_feedback.get(user_id, False):
         bot.reply_to(message, "𝗣𝗘𝗛𝗟𝗘 𝗦𝗖𝗥𝗘𝗘𝗡𝗦𝗛𝗢𝗧 𝗕𝗛𝗘𝗝, 𝗪𝗔𝗥𝗡𝗔 𝗡𝗔𝗬𝗔 𝗔𝗧𝗧𝗔𝗖𝗞 𝗡𝗔𝗛𝗜 𝗟𝗔𝗚𝗘𝗚𝗔! 😡")
+        return
+
+# BLOCK REPEATED TARGET ATTACKS PER USER
+target_key = (command[1], command[2])
+    if user_id in used_targets and target_key in used_targets[user_id]:
+        bot.reply_to(message, "⚠️ 𝗧𝗨 𝗣𝗘𝗛𝗟𝗘 𝗛𝗜 𝗜𝗦 𝗜𝗣 𝗣𝗢𝗥𝗧 𝗣𝗘 𝗔𝗧𝗧𝗔𝗖𝗞 𝗞𝗔𝗥 𝗖𝗛𝗨𝗞𝗔 𝗛𝗔𝗜! ❌")
         return
 
     if is_attack_running:
@@ -112,6 +119,11 @@ def handle_attack(message):
         # ATTACK LOGS
         attack_logs.append(f"{user_id} -> {target}:{port} ({time_duration}s)")
         user_attack_count[user_id] = user_attack_count.get(user_id, 0) + 1
+
+# STORE USED TARGET
+    if user_id not in used_targets:
+        used_targets[user_id] = set()
+        used_targets[user_id].add((target, str(port)))
 
 # AUTO ANNOUNCEMENT SYSTEM
 def auto_announcement():
