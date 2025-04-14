@@ -75,6 +75,11 @@ target_key = (command[1], command[2])
         bot.reply_to(message, "⚠️ USAGE: /bgmi <IP> <PORT> <TIME>")
         return
 
+    target_key = (command[1], command[2])
+    if user_id in used_targets and target_key in used_targets[user_id]:
+        bot.reply_to(message, "⚠️ 𝗧𝗨 𝗣𝗘𝗛𝗟𝗘 𝗛𝗜 𝗜𝗦 𝗜𝗣 𝗣𝗢𝗥𝗧 𝗣𝗘 𝗔𝗧𝗧𝗔𝗖𝗞 𝗞𝗔𝗥 𝗖𝗛𝗨𝗞𝗔 𝗛𝗔𝗜! ❌")
+        return
+
     target, port, time_duration = command[1], command[2], command[3]
 
     try:
