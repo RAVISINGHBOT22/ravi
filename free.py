@@ -116,8 +116,25 @@ def handle_attack(message):
 # AUTO ANNOUNCEMENT SYSTEM
 def auto_announcement():
     while True:
-        time.sleep(21600)  # 6 HOURS
-        bot.send_message(GROUP_ID, "📢 **𝗚𝗥𝗣 𝗨𝗣𝗗𝗔𝗧𝗘:** 𝗥𝗨𝗟𝗘𝗦 𝗙𝗢𝗟𝗟𝗢𝗪 𝗞𝗔𝗥𝗢, 𝗪𝗔𝗥𝗡𝗔 𝗕𝗔𝗡 𝗣𝗔𝗞𝗞𝗔!! 🚀")
+        time.sleep(10800)  # 3HOURS
+        bot.send_message(GROUP_ID, """📢 **PAID BOT AVAILABLE** 👇
+**FOR UNLIMITED ATTACKS**
+
+240 SEC WORKING  
+⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡  
+**CHIPSET PRIZE**  
+`1 HAURS` - 💸10  
+`12 HAURS` - 💸40  
+`1 DAYS` - 💸70  
+`3 DAYS` - 💸180  
+`7 DAYS` - 💸350  
+
+**BUY KARNE KE LIYE**  
+DM - @R_SDanger  
+
+💸💸💸💸💸💸💸  
+⚡⚡⚡🔥🔥🔥🔥
+""", parse_mode="Markdown")
 
 # HANDLE SCREENSHOT SUBMISSION
 @bot.message_handler(content_types=['photo'])
